@@ -90,32 +90,25 @@ sys_uptime(void)
   return xticks;
 }
 
-int sys_mprotect(void)
-{
-  int addr,len,prot;
+int
+sys_mprotect(void){
+  int d;
+  int n = 0;
+  if(argint(0, &d)<0 || argint(1, &n)<0)
+    return -1;
+  return mprotect((void *)d,n);
 
-  if(argint(0, &addr) <0)
-    return -1;
-  if(argint(1,&len) <0)
-    return -1;
-  if(argint(2,&prot) <0)
-    return -1;
-
-  return mprotect((void*)addr,len,prot);
 }
 
-int sys_munprotect(void)
-{
-  int addr,len,prot;
+int
+sys_munprotect(void){
+  int d;
+  int n = 0;
+  if(argint(0, &d)<0 || argint(1, &n)<0)
+    return -1;
+  return munprotect((void *)d,n);
 
-  if(argint(0, &addr) <0)
-    return -1;
-  if(argint(1,&len) <0)
-    return -1;
-  if(argint(2,&prot) <0)
-    return -1;
-
-  return munprotect((void*)addr,len,prot);
 }
+
 
 
