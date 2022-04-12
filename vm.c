@@ -223,6 +223,68 @@ loaduvm(pde_t *pgdir, char *addr, struct inode *ip, uint offset, uint sz)
   return 0;
 }
 
+int
+mprotect(void *addr, int len, int prot)
+{
+  pte_t *page_table_entry;
+  cprintf("*addr: %d\n",(uint)addr);
+  //loop through all the page entries that need protection level changed
+  uint base_addr = PGROUNDDOWN((uint)addr);
+  uint curr = base_addr;
+  do {
+
+    page_table_entry = walkpgdir(proc->pgdir,(void *)curr ,0);
+    curr += PGSIZE;
+    //clear last 3 bits
+    cprintf("page table entry before: 0x%x desireced prot = %d\n",*page_table_entry,prot);
+    //clear last 3 bits
+    *page_table_entry &= 0xfffffff9;
+     switch(prot) {
+      case PROT_NONE:
+        *page_table_entry |= PTE_P;
+        break;
+      case PROT_READ:
+        *page_table_entry |= (PTE_P | PTE_U);
+        break;
+      case PROT_WRITE:
+        *page_table_entry |= (PTE_P | PTE_W);
+        break;
+      case PROT_READ | PROT_WRITE:
+        *page_table_entry |= (PTE_P | PTE_W | PTE_U);
+    }
+    cprintf("page table entry after: 0x%x\n",*page_table_entry);
+  } while(curr < ((uint)addr +len));
+  lcr3(v2p(proc->pgdir));
+  return 0; 
+}
+
+
+int
+munprotect(void *addr, int len, int prot)
+{
+  pte_t *page_table_entry;
+  cprintf("*addr: %d\n",(uint)addr);
+  //loop through all the page entries that need protection level changed
+  uint base_addr = PGROUNDDOWN((uint)addr);
+  uint curr = base_addr;
+  do {
+
+    page_table_entry = walkpgdir(proc->pgdir,(void *)curr ,0);
+    curr += PGSIZE;
+    //clear last 3 bits
+    cprintf("page table entry before: 0x%x desireced prot = %d\n",*page_table_entry,prot);
+    //clear last 3 bits
+    *page_table_entry &= 0xfffffff9;
+     switch(prot) {
+      case PROT_READ :
+        *page_table_entry |= (PTE_P | PTE_W | PTE_U);
+    }
+    cprintf("page table entry after: 0x%x\n",*page_table_entry);
+  } while(curr < ((uint)addr +len));
+  lcr3(v2p(proc->pgdir));
+  return 0; 
+}
+
 // Allocate page tables and physical memory to grow process from oldvlimit to
 // newvlimit, which need not be page aligned.  Returns new size or 0 on error.
 int
